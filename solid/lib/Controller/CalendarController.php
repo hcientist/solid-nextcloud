@@ -62,8 +62,10 @@ class CalendarController extends Controller {
 		$formats = new \Pdsinterop\Rdf\Formats();
 
 		$serverParams = $this->rawRequest->getServerParams();
-		$scheme = $serverParams['REQUEST_SCHEME'];
-		$domain = $serverParams['SERVER_NAME'];
+		// Ask Nextcloud rather than $_SERVER, so overwriteprotocol and overwritehost
+		// apply when running behind a reverse proxy.
+		$scheme = $this->request->getServerProtocol();
+		$domain = $this->request->getServerHost();
 		$path = $serverParams['REQUEST_URI'];
 		$serverUri = "{$scheme}://{$domain}{$path}"; // FIXME: doublecheck that this is the correct url;
 
