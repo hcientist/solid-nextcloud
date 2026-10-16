@@ -20,6 +20,7 @@ use Pdsinterop\Solid\Resources\Server as ResourceServer;
 
 class CalendarController extends Controller {
 	use DpopFactoryTrait;
+	use RequestUriTrait;
 
 	/* @var IURLGenerator */
 	private $urlGenerator;
@@ -61,13 +62,7 @@ class CalendarController extends Controller {
 		// Create Formats objects
 		$formats = new \Pdsinterop\Rdf\Formats();
 
-		$serverParams = $this->rawRequest->getServerParams();
-		// Ask Nextcloud rather than $_SERVER, so overwriteprotocol and overwritehost
-		// apply when running behind a reverse proxy.
-		$scheme = $this->request->getServerProtocol();
-		$domain = $this->request->getServerHost();
-		$path = $serverParams['REQUEST_URI'];
-		$serverUri = "{$scheme}://{$domain}{$path}"; // FIXME: doublecheck that this is the correct url;
+		$serverUri = $this->getRequestUri();
 
 		// Create the RDF Adapter
 		$rdfAdapter = new \Pdsinterop\Rdf\Flysystem\Adapter\Rdf(
@@ -192,11 +187,11 @@ EOF;
 		// and otherwise:
 		//   index.php/apps/solid/~{userId}/calendar{path}
 
-		// In the first case, we'll get the username from the SERVER_NAME. In the latter, it will come from the URL;
+		// In the first case, we'll get the username from the host name. In the latter, it will come from the URL;
 		if ($this->config->getUserSubDomainsEnabled()) {
 			$pathInfo = explode("calendar/", $_SERVER['REQUEST_URI']);
 			$path = $pathInfo[1];
-			$userId = explode(".", $_SERVER['SERVER_NAME'])[0];
+			$userId = explode(".", $this->request->getServerHost())[0];
 		} else {
 			$pathInfo = explode("~", $_SERVER['REQUEST_URI']);
 			$pathInfo = explode("/", $pathInfo[1], 2);
